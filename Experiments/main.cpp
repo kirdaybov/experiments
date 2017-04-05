@@ -1,5 +1,4 @@
 #include <iostream>
-#include <stack>
 #include <thread>
 #include <mutex>
 #include <vector>
@@ -19,77 +18,7 @@ void* operator new(unsigned int, A &a)
   return pa;
 }
 
-template<typename TFunc>
-class Callback
-{};
-
-template<typename Ret, typename... Args>
-class Callback<Ret(*)(Args...)>
-{
-public:
-  typedef Ret(*TFunc)(Args...);
-  Callback(TFunc Func) : Func(Func) {}
-
-  Ret operator ()(Args... args)
-  {
-    return Func(args...);
-  }
-private:
-  TFunc Func;
-};
-
-template<typename T, typename Ret, typename... Args>
-class Callback<Ret(T::*)(Args...)>
-{
-public:
-  typedef Ret(T::*TFunc)(Args...);
-  Callback(T* Object, TFunc Func) : Object(Object), Func(Func) {}
-
-  Ret operator ()(Args... args)
-  {
-    return (Object->*Func)(args...);
-  }
-private:
-  T* Object;
-  TFunc Func;
-};
-
-template<typename T>
-class Container
-{
-public:
-  Container(const T& t) : Value(t) {}
-  void Print() { std::cout << std::endl << "Value: " << Value; }
-private:
-  T Value;
-};
-
-template<typename T>
-class Delegate
-{
-  void BindStatic(T Func) { cb = Callback<T>(Func); IsBound = true; }
-  template<typename O> void BindMember(O* o, T Func) { cb = Callback<T>(o, Func); IsBound = true; }
-private:
-  bool IsBound = false;
-  Callback<T> cb;
-};
-
-#define DELEGATE(Name) typedef Delegate<void(*)()> Name;
-#define DELEGATE_One(Name, TParam1) typedef Delegate<void(*)(TParam1)> Name;
-#define DELEGATE_Ret_One(Name, TParam1) typedef Delegate<Ret(*)(TParam1)> Name;
-
-template <typename T> Container<T> MakeContainer(const T& t) { return Container<T>(t); }
-template <typename T> Callback<T> MakeCallback(T t) { return Callback<T>(t); }
-template <typename O, typename T> Callback<T> MakeMemberCallback(O* o, T t) { return Callback<T>(o, t); }
-
 template<typename T> void Print(const T& t) { std::cout << t; }
-
-void Hello()
-{
-  std::cout << "Hello";
-}
-
-int Square(int x) { return x*x; }
 
 class Member
 {
@@ -102,151 +31,7 @@ public:
   }
 };
 
-struct Type;
 
-bool operator ==(const Type& a, const Type& b)
-{
-  if (&a == &b) return true; // baaad  
-}
-
-struct Type
-{
-  int Id = 0;
-  Type* Parent = nullptr;
-  bool IsChildOf(const Type& b) const
-  {
-    if (operator ==(b, *this))
-      return true;
-
-    if (Parent)
-      return IsChildOf(*Parent);
-    return false;
-  }
-};
-
-struct Types
-{
-  //std::map<
-};
-
-#define GENERATE_REFLECTION(ClassName) static const Type& Class() { static Type Class##ClassName; return Class##ClassName; }
-#define GENERATE_REFLECTION_INHERITED(ClassName, ParentClassName) static const Type& Class() { static Type Class##ClassName; static Type Class##ParentName; Class##ClassName.Parent = &Class##ParentName; return Class##ClassName; }
-
-//template <class T>
-//struct TType : public Type
-//{
-//  static Type* Class()
-//  {
-//    static TType<T> ThisClass;
-//    return &ThisClass##T;
-//  }
-//};
-
-struct AClass
-{
-  GENERATE_REFLECTION(AClass)
-};
-
-struct BClass
-{
-  GENERATE_REFLECTION(BClass)
-};
-
-struct BInheritedClass : public BClass
-{
-  GENERATE_REFLECTION_INHERITED(BInheritedClass, BClass)
-};
-
-template <typename T>
-class CArray
-{
-public:
-  void Add(const T &El) {};
-  T& operator [] (int Index) {}
-
-  T* begin() { return &operator[0]; }
-  const T* begin() const { return &operator[0]; }
-  T* end() { return &operator[0]; }
-  const T* end() const { return &operator[0]; }
-};
-
-class CMemoryAllocator
-{
-  static CMemoryAllocator* Instance;
-  static const size_t ChunkSize;
-  static const uint16_t ChunkNumber;
-  int* Storage = nullptr;
-
-  struct ChunkInfo
-  {
-    void* Ptr;
-  };
-
-  std::stack<ChunkInfo> Chunks;
-
-public:
-  CMemoryAllocator()
-  {
-    Storage = (int*)malloc(ChunkNumber * ChunkSize);
-    for (int i = 0; i < ChunkNumber; i++)
-      Chunks.push({ Storage + i });
-  }
-  ~CMemoryAllocator()
-  {
-    free(Storage);
-  }
-
-  __forceinline static CMemoryAllocator* Get() { return Instance; }
-  template<typename T, typename ... Args>
-  __forceinline T* Alloc(Args ... args) { return new (Alloc(sizeof(T))) T(args ...); }
-  __forceinline void* Alloc(size_t Size) { auto Ptr = Chunks.top().Ptr; Chunks.pop(); return Ptr; }
-  __forceinline void Free(void *Ptr) { Chunks.push({ Ptr }); }
-};
-
-template<typename T, typename ... TArgs>
-T* New(TArgs ... args) { return CMemoryAllocator::Get()->Alloc<T>(args ...); }
-template<typename T>
-void Free(T* Ptr) { Ptr->~T(); CMemoryAllocator::Get()->Free(Ptr); }
-
-
-CMemoryAllocator* CMemoryAllocator::Instance = new CMemoryAllocator();
-const size_t CMemoryAllocator::ChunkSize = 64;
-const uint16_t CMemoryAllocator::ChunkNumber = 200;
-
-template <typename T>
-class TSharedPtr
-{
-  T* Obj;
-  class CReferenceCounter
-  {
-    int Cnt = 1;
-  public:
-    void operator--() { Cnt--; }
-    void operator++() { Cnt++; }
-    operator bool() const { return Cnt > 0; }
-  } *Ref;
-  void Destroy() { Free(Ref); Free(Obj); }
-public:
-  template<typename ... TArgs>
-  TSharedPtr(TArgs ... args) : Obj(New<T>(args ...)), Ref(New<CReferenceCounter>()) { }
-  TSharedPtr(const TSharedPtr<T> &Other) : Obj(Other.Obj), Ref(Other.Ref) { ++(*Ref); }
-  ~TSharedPtr()
-  {
-    --(*Ref);
-    if (!(*Ref))
-      Destroy();
-  }
-  T* operator->() { return Obj; }
-};
-
-class Some
-{
-  int Number;
-public:
-  Some(int Number) : Number(Number) { std::cout << "\nCreated"; }
-  ~Some() { std::cout << "\nDestroyed"; }
-  void Print() { std::cout << "\nPrint " << Number; }
-};
 
 struct Data
 {
@@ -301,49 +86,6 @@ struct Sum
 #define STR2(x) #x
 
 #define MESSAGE(x) __FILE__ " line " STR(__LINE__) ": " x
-
-//class MyClass
-//{
-//public:
-//  void MyFunc(int i) {}
-//};
-//
-//template<class T, class ... TArgs> 
-//class TFunctor
-//{
-//  typedef void (T::*TFunc)(TArgs ...);
-//};
-//
-//template<class T, class ... TArgs>
-//class MyFunctor<T, void (T::*Func)(TArgs...), TArgs>
-//{
-//  void operator () (T* Obj, )
-//};
-//
-//template<class T, TFunc Func>
-//void CallTFuncOnT(T* Obj)
-//{
-//  Obj->(*Func)();
-//}
-//
-//
-//template <void (*TFunc)()>
-//void Func()
-//{
-//
-//}
-//
-//Func<MyClass, &MyClass::Func>(4);
-void MoreHello(int i)
-{
-  std::cout << "\nHello, " << i;
-}
-
-template <typename TFunc, typename ... TArgs>
-void Func(TFunc Func, TArgs ... Args)
-{
-  (*Func)(Args...);
-}
 
 struct Iterator
 {
@@ -678,40 +420,16 @@ struct MapTest
 } _TMapTest;
 
 int main()
-{
-  std::cout << std::endl << "Hi!";
+{  
   system("PAUSE");
   return 0;
-
-  //D* d = new D();
-  ////s1* ps1 = d;
-  ////s2* ps2 = d;
-  ////s3* ps3 = d;
-  //std::cout << "\n" << sizeof(s1);
-  //std::cout << "\n" << sizeof(s2);
-  //std::cout << "\n" << sizeof(s3);
-  //std::cout << "\n" << sizeof(D);
-  //system("PAUSE");
-  //return 0;
 
   for (auto i : Iterator(0, 0, 10))
     std::cout << i;
 
-  Func(Hello);
-  Func(MoreHello, 4);
   system("PAUSE");
   return 0;
 
-  {
-    TSharedPtr<Some> Ptr1(1);
-    TSharedPtr<Some> Ptr2(Ptr1);
-    TSharedPtr<Some> Ptr3(2);
-    TSharedPtr<Some> Ptr4(3);
-    Ptr1->Print();
-    Ptr2->Print();
-    Ptr3->Print();
-    Ptr4->Print();
-  }
   {
     Data data;
     //for (int i = 0; i < 100; i++)
@@ -722,29 +440,5 @@ int main()
       th1.join();
       th2.join();
     }
-  }
-  system("PAUSE");
-  return 0;
-
-  auto Call = MakeCallback(Hello);
-  auto CallSquare = MakeCallback(Square);
-  Call();
-  std::cout << CallSquare(3);
-
-  auto Con = MakeContainer(3);
-
-  auto MCall = MakeMemberCallback(&Con, &Container<int>::Print);
-  MCall();
-
-  AClass a1 = AClass();
-  AClass a2 = AClass();
-  BClass b1 = BClass();
-  BInheritedClass b2 = BInheritedClass();
-
-  if (!a1.Class().IsChildOf(a2.Class())) std::cout << "Fail 1!";
-  if (!b2.Class().IsChildOf(b1.Class())) std::cout << "Fail 2!";
-  if (b2.Class().IsChildOf(a1.Class())) std::cout << "Fail 3!";
-
-  system("PAUSE");
-  return 0;
+  }  
 }

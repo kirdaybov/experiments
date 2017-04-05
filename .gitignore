@@ -1,5 +1,6 @@
 .vs/*
 /Output/*
 /Experiments/Intermediate/*
+*.swp
 *.sdf
 *.opendb

@@ -19,7 +19,7 @@ public:
   CMemoryAllocator()
   {
     Storage = (int*)malloc(ChunkNumber * ChunkSize);
-    for (int i = 0; i < ChunkNumber; i++)
+    for (size_t i = 0; i < ChunkNumber; i++)
       Chunks.push({ Storage + i });
   }
   ~CMemoryAllocator()
@@ -38,9 +38,3 @@ template<typename T, typename ... TArgs>
 T* New(TArgs ... args) { return CMemoryAllocator::Get()->Alloc<T>(args ...); }
 template<typename T>
 void Free(T* Ptr) { Ptr->~T(); CMemoryAllocator::Get()->Free(Ptr); }
-
-
-//.cpp
-//CMemoryAllocator* CMemoryAllocator::Instance = new CMemoryAllocator();
-//const size_t CMemoryAllocator::ChunkSize = 64;
-//const size_t CMemoryAllocator::ChunkNumber = 200;

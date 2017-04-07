@@ -49,7 +49,7 @@ struct IndirectFunctionCall_test
 {
   IndirectFunctionCall_test()
   {
-    assert(Func(Hello));
-    assert(Func(MoreHello, 4) == 4);
+    Func(Hello);
+    Func(MoreHello, 4);
   }  
 } _IndirectFunctionCall_test;

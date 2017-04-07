@@ -117,14 +117,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ChunkMemoryAllocator.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ChunkMemoryAllocator.h" />
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="IndirectFunctionCall.h" />
+    <ClInclude Include="MemoryAllocator.h" />
     <ClInclude Include="Reflection.h" />
     <ClInclude Include="SharedPtr.h" />
+    <ClInclude Include="ShortTasks.h" />
+    <ClInclude Include="TArray.h" />
+    <ClInclude Include="TGraph.h" />
+    <ClInclude Include="Threads.h" />
+    <ClInclude Include="TList.h" />
+    <ClInclude Include="TMap.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

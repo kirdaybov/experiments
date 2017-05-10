@@ -1,5 +1,5 @@
 #pragma once
-
+#include "TList.h"
 
 template<class TKey, class TValue>
 class TMap
@@ -42,18 +42,19 @@ struct MapTest
   MapTest()
   {
     TMap<int, char> map;
-    std::cout << std::endl;
+    TList<char> list;
     for (int i = 0; i < 10; i++)
     {
       char c = rand() % 255;
       map.add(i, c);
-      std::cout << c;
+      list.add(c);
     }
 
-    std::cout << std::endl;
+    auto Iter = list.begin();
     for (int i = 0; i < 10; i++)
     {
-      std::cout << map[i];
+      assert(map[i] == *Iter);
+      ++Iter;
     }
   }
 } _TMapTest;

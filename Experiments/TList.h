@@ -1,4 +1,6 @@
 #pragma once
+
+#include "MemoryAllocator.h"
 #include <cassert>
 
 template<class T, class TAlloc = CAllocator>

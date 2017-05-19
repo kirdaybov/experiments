@@ -9,6 +9,7 @@
 //#include "ShortTasks.h"
 #include "TArray.h"
 #include "TGraph.h"
+#include "NetProtocol.h"
 //#include "TList.h"
 //#include "TMap.h"
 

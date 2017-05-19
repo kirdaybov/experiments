@@ -125,6 +125,7 @@
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="IndirectFunctionCall.h" />
     <ClInclude Include="MemoryAllocator.h" />
+    <ClInclude Include="NetProtocol.h" />
     <ClInclude Include="Reflection.h" />
     <ClInclude Include="SharedPtr.h" />
     <ClInclude Include="ShortTasks.h" />

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <string.h>
 
 typedef unsigned int uint;
 
@@ -78,3 +79,82 @@ void parse_data(char* data, size_t size)
     parse_by_code(code, data, size);
   }
 }
+
+class packet
+{
+protected:
+  char data[256];
+  char* current = nullptr;
+  size_t size;
+
+public:
+  packet() : current(data) {}
+  void copy_from(const packet &other)
+  {
+    memcpy(data, other.data, 256);
+    current = data;
+    size = other.size;
+  }
+};
+
+class writer : public packet
+{ 
+  template<typename T> void _serialize(T& value)
+  {
+    size_t piece_size = sizeof(T);
+    *(T*)current = value;
+    current += piece_size;
+    size += piece_size;
+  }
+public:
+  template<typename T> void serialize_s(T& value) { value.serialize(*this); }
+  template<typename T> void serialize(T& value) { _serialize(value); }
+};
+
+class reader : public packet
+{
+  template<typename T> void _serialize(T& value)
+  {
+    size_t piece_size = sizeof(T);
+    assert(size >= piece_size);
+    value = *(T*)current;
+    current += piece_size;
+    size -= piece_size;
+  }
+public:
+  template<typename T> void serialize_s(T& value) { value.serialize(*this); }
+  template<typename T> void serialize(T& value) { _serialize(value); }
+};
+
+struct my_other_struct
+{
+  template<typename TPacket> void serialize(TPacket &pack) {}
+};
+
+struct my_struct
+{
+  my_struct() {}
+  my_struct(int i, const char* name) : i_(i) {}
+  int i_ = 5;
+  //const char *name_ = "penis";
+  my_other_struct s;
+  template<typename TPacket> void serialize(TPacket &pack)
+  {
+    pack.serialize(i_);
+    //pack.serialize(name_);
+    pack.serialize_s(s);
+  }
+};
+
+struct net_test
+{
+  net_test()
+  {
+    my_struct s(3, "balls");
+    writer w;
+    w.serialize_s(s);
+    reader r;
+    r.copy_from(w);
+    r.serialize_s(s);
+  }
+} net_test_;

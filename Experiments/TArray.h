@@ -1,6 +1,7 @@
 #pragma once
 #include <cassert>
 #include <iostream>
+#include "Testing.h"
 
 #include "MemoryAllocator.h"
 
@@ -85,42 +86,38 @@ public:
   using TArray<T>::operator[];
 };
 
-struct TArrayTest
-{
-  TArrayTest()
+ADD_TEST(TArray, 
+  TArray<int> integers;
+
+  for (auto integer : integers)
+    assert(false);
+  const int N = 10;
+  for (int i = 0; i < N; i++)
+    integers.add(i);
+  assert(integers.size() == N);
+  for (int i = 0; i < N; i++)
   {
-    TArray<int> integers;
-
-    for (auto integer : integers)
-      assert(false);
-    const int N = 10;
-    for (int i = 0; i < N; i++)
-      integers.add(i);
-    assert(integers.size() == N);
-    for (int i = 0; i < N; i++)
-    {
-      assert(integers[i] == i);
-    }
-
-    int i = 0;
-    for (auto integer : integers)
-    {
-      assert(integer == i);
-      i++;
-    }
-    assert(i == N);
-
-    for (int i = 0; i < N / 2; i++)
-      integers.remove_last();
-    integers.remove_at(0);
-    integers.remove_at(1);
-    assert(integers.size() == 3);
-
-    assert(integers[0] == 1);
-    assert(integers[1] == 3);
-    assert(integers[2] == 4);
+    assert(integers[i] == i);
   }
-} _TArrayTest;
+
+  int i = 0;
+  for (auto integer : integers)
+  {
+    assert(integer == i);
+    i++;
+  }
+  assert(i == N);
+
+  for (int i = 0; i < N / 2; i++)
+    integers.remove_last();
+  integers.remove_at(0);
+  integers.remove_at(1);
+  assert(integers.size() == 3);
+
+  assert(integers[0] == 1);
+  assert(integers[1] == 3);
+  assert(integers[2] == 4);
+)
 
 struct TDArrayTest
 {

@@ -1,5 +1,5 @@
 //#include "ChunkMemoryAllocator.h"
-//#include "Delegates.h"
+#include "Delegates.h"
 //#include "IndirectFunctionCall.h"
 //#include "Reflection.h"
 //#include "SharedPtr.h"
@@ -80,8 +80,28 @@ struct Iterator
   Iterator end() { std::cout << "\nend"; return Iterator(_end, _start, _end); }
 };
 
+struct Ref
+{
+  int x = 0;
+};
+
+struct Test
+{
+  int f(const Ref &r) { return 5; }
+  int f(float r) { return 1; }
+};
+
+int check(const Ref &r)
+{
+  Test t;
+  return t.f(r);
+}
+
 int main()
-{  
+{ 
+  Ref r;
+  check(r);
+  RUN_TESTS
   system("PAUSE");
   return 0;
 }

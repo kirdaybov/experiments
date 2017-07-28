@@ -46,11 +46,17 @@ private:
   T Value;
 };
 
-template<typename T>
-class Delegate
+template<typename TFunc>
+class Delegate {};
+
+template<typename Ret, typename... Args>
+class Delegate<Ret (Args...)>
 {
+  typedef 
+public:
   void BindStatic(T Func) { cb = Callback<T>(Func); IsBound = true; }
   template<typename O> void BindMember(O* o, T Func) { cb = Callback<T>(o, Func); IsBound = true; }
+  Ret Execute(Args... args) { return cb(args...); }
 private:
   bool IsBound = false;
   Callback<T> cb;
@@ -58,7 +64,7 @@ private:
 
 #define DELEGATE(Name) typedef Delegate<void(*)()> Name;
 #define DELEGATE_One(Name, TParam1) typedef Delegate<void(*)(TParam1)> Name;
-#define DELEGATE_Ret_One(Name, TParam1) typedef Delegate<Ret(*)(TParam1)> Name;
+#define DELEGATE_Ret_One(Name, Ret, TParam1) typedef Delegate<Ret(*)(TParam1)> Name;
 
 template <typename T> Container<T> MakeContainer(const T& t) { return Container<T>(t); }
 template <typename T> Callback<T> MakeCallback(T t) { return Callback<T>(t); }
@@ -69,8 +75,13 @@ struct Delegate_test
   static bool Hello() { return true; }
   static int Square(int x) { return x*x; }
 
+  DELEGATE_Ret_One(DHandleEvent, int, int)
+  DHandleEvent event_handler;
+
   Delegate_test()
   {
+    event_handler.BindStatic(Square);
+    assert(event_handler.Execute(3) == 9);
     auto Call = MakeCallback(Hello);
     auto CallSquare = MakeCallback(Square);
     assert(Call());

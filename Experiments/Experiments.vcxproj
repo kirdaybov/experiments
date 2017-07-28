@@ -119,17 +119,22 @@
   <ItemGroup>
     <ClCompile Include="ChunkMemoryAllocator.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Testing.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ChunkMemoryAllocator.h" />
     <ClInclude Include="Delegates.h" />
+    <ClInclude Include="GUI.h" />
     <ClInclude Include="IndirectFunctionCall.h" />
+    <ClInclude Include="Logger.h" />
     <ClInclude Include="MemoryAllocator.h" />
     <ClInclude Include="NetProtocol.h" />
     <ClInclude Include="Reflection.h" />
     <ClInclude Include="SharedPtr.h" />
     <ClInclude Include="ShortTasks.h" />
+    <ClInclude Include="Stream.h" />
     <ClInclude Include="TArray.h" />
+    <ClInclude Include="Testing.h" />
     <ClInclude Include="TGraph.h" />
     <ClInclude Include="Threads.h" />
     <ClInclude Include="TList.h" />
